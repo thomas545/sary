@@ -15,6 +15,9 @@ from .permissions import StateInProgress
 
 
 class LinkTwoTasksView(generics.CreateAPIView):
+    """
+    Linked two tasks together
+    """
     permission_classes = (StateInProgress,)
     serializer_class = LinkedTwoTasksSerialzer
     queryset = Task.objects.all()
