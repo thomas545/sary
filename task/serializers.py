@@ -85,6 +85,7 @@ class ChangeTaskState(serializers.ModelSerializer):
             "state_value",
         )
 
+
 class LinkedTwoTasksSerialzer(serializers.Serializer):
     task_one = serializers.IntegerField()
     task_two = serializers.IntegerField()
