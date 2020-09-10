@@ -1,0 +1,89 @@
+from django.shortcuts import get_object_or_404
+from rest_framework import generics, status, views
+from rest_framework.response import Response
+from rest_framework.exceptions import NotAcceptable, ValidationError
+from django_fsm import can_proceed
+
+from .serializers import (
+    TaskSerializer,
+    DisplayTasksSerializer,
+    LinkedTasksTogetherSerializer,
+    ChangeTaskState,
+)
+from .models import Task
+from .permissions import StateInProgress
+
+
+class LinkTasksView(generics.RetrieveUpdateAPIView):
+    """
+    Display linked tasks with any id/pk,
+    Linked two tasks together
+
+    Endpoint = linked/tasks/current_task_id/
+
+    GET -> Fields: id, uuid, title, description, state, linked_task, created
+    UPDATE | PATCH -> Fields: {linked_task: another_task_id}
+
+    response -> tasks linked successfully!
+    """
+
+    permission_classes = (StateInProgress,)
+    serializer_class = DisplayTasksSerializer
+    queryset = Task.objects.all()
+
+    def update(self, request, *args, **kwargs):
+        task = self.get_object()
+        if task.linked_task:
+            raise NotAcceptable("Task already linked")
+
+        serializer = LinkedTasksTogetherSerializer(
+            instance=task, data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        Task.objects.filter(id=request.data.get("linked_task")).update(linked_task=task)
+
+        return Response({"detail": "tasks linked successfully!"})
+
+
+class RemoveLinkedTaskView(views.APIView):
+    """
+    Remove link between tasks
+    Endpoint: remove/linked/task_id/
+
+    response: Linked removed successfully.
+    """
+
+    def get_object(self):
+        pk = self.kwargs.get("pk")
+        instance = get_object_or_404(Task, pk=pk)
+        return instance
+
+    def post(self, request, *args, **kwargs):
+        task = self.get_object()
+        linked = task.linked_task
+        if not task.linked_task or not linked.linked_task:
+            raise ValidationError("No linked to remove.")
+        linked.linked_task = None
+        task.linked_task = None
+        linked.save()
+        task.save()
+
+        return Response({"detail": "Linked removed successfully."})
+
+
+class ChangeTaskStateView(generics.RetrieveUpdateAPIView):
+    """
+    Change Task state
+    Endpoint: change-state/task_id/
+    state :
+    - n = New
+    - i = In Progress
+    - d = Done
+
+    request: {"state": "i"}
+    response: {"state": "d", "state_value": "Done"}
+    """
+
+    serializer_class = ChangeTaskState
+    queryset = Task.objects.all()
