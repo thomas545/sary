@@ -89,3 +89,10 @@ class TestViewsCases(SetupTestMainViews):
         response = self.client.put(url, data)
         self.assertEqual(response.data.get("state"), "d")
         self.assertEqual(response.data.get("state_value"), "Done")
+
+    def test_two_tasks_together(self):
+        url = reverse("link_two_tasks")
+        data = {"task_one": self.task.pk, "task_two": self.linked.pk}
+
+        response = self.client.post(url, data)
+        self.assertEqual(response.data.get("detail"), "tasks were linked successfully!")

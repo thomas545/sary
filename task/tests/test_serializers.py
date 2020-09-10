@@ -6,6 +6,7 @@ from ..serializers import (
     DisplayTasksSerializer,
     LinkedTasksTogetherSerializer,
     ChangeTaskState,
+    LinkedTwoTasksSerialzer,
 )
 
 
@@ -54,4 +55,12 @@ class TestSerializersCases(APITestCase):
     def test_change_task_state(self):
         data = {"state": "n"}
         serializer = ChangeTaskState(data=data)
+        self.assertEqual(serializer.is_valid(), True)
+
+    def test_linked_two_tasks_serialzer(self):
+        linked = Task.objects.create(
+            title="test linked task", description="test linked task model"
+        )
+        data = {"task_one": self.task.pk, "task_two": linked.pk}
+        serializer = LinkedTwoTasksSerialzer(data=data)
         self.assertEqual(serializer.is_valid(), True)
