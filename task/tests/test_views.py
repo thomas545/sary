@@ -2,8 +2,6 @@ from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
 from ..models import Task
-from ..views import LinkTasksView, RemoveLinkedTaskView, ChangeTaskStateView
-from ..viewsets import TaskViewSet
 
 
 class SetupTestMainViews(APITestCase):

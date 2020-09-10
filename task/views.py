@@ -8,12 +8,34 @@ from .serializers import (
     DisplayTasksSerializer,
     LinkedTasksTogetherSerializer,
     ChangeTaskState,
+    LinkedTwoTasksSerialzer,
 )
 from .models import Task
 from .permissions import StateInProgress
 
 
-class LinkTasksView(generics.RetrieveUpdateAPIView):
+class LinkTwoTasksView(generics.CreateAPIView):
+    permission_classes = (StateInProgress,)
+    serializer_class = LinkedTwoTasksSerialzer
+    queryset = Task.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        task_1 = get_object_or_404(
+            Task, pk=int(serializer.validated_data.get("task_one"))
+        )
+        task_2 = get_object_or_404(
+            Task, pk=int(serializer.validated_data.get("task_two"))
+        )
+        task_1.linked_task = task_2
+        task_2.linked_task = task_1
+        task_1.save()
+        task_2.save()
+        return Response({"detail": "tasks were linked successfully!"})
+
+
+class LinkTaskView(generics.RetrieveUpdateAPIView):
     """
     Display linked tasks with any id/pk,
     Linked two tasks together
