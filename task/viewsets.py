@@ -13,7 +13,7 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     permission_classes = (StateNotDone,)
     serializer_class = TaskSerializer
-    queryset = Task.objects.all()
+    queryset = Task.objects.all().select_related('linked_task')
     http_method_names = (
         u"get",
         u"post",
