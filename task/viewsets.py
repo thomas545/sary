@@ -6,7 +6,7 @@ from .permissions import StateNotDone
 
 class TaskViewSet(viewsets.ModelViewSet):
     """
-    Add new task & edit tasks
+    Add new task & edit tasks in state New
     Required fields in POST | UPDATE | PATCH: title, description
     Display fields: id, uuid, title, description, state, linked_task, created,
     """
